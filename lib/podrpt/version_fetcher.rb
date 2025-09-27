@@ -7,7 +7,7 @@ module Podrpt
 
     def fetch_latest_versions_in_bulk(pod_names)
       return {} if pod_names.empty?
-      puts "[podrpt] Descobrindo a última versão para #{pod_names.length} pods..."
+      puts "Discovering the latest version for #{pod_names.length} pods..."
       results = Concurrent::Map.new
       pool = Concurrent::ThreadPoolExecutor.new(max_threads: @options.trunk_workers)
       pod_names.each { |name| pool.post { results[name] = find_latest_version(name) } }
@@ -22,7 +22,7 @@ module Podrpt
       set = @sources_manager.search(Pod::Dependency.new(pod_name))
       set&.highest_version.to_s
     rescue => e
-      warn "[podrpt] AVISO: Falha ao buscar versão para #{pod_name}: #{e.message}"
+      warn " WARNING: Failed to fetch version for #{pod_name}: #{e.message}"
       nil
     end
   end

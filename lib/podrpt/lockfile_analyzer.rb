@@ -2,7 +2,7 @@ module Podrpt
   class LockfileAnalyzer
     def initialize(project_dir)
       lockfile_path = File.join(project_dir, 'Podfile.lock')
-      raise "ERRO: #{lockfile_path} não encontrado." unless File.exist?(lockfile_path)
+      raise "ERRO: #{lockfile_path} not found." unless File.exist?(lockfile_path)
       @lockfile = Pod::Lockfile.from_file(Pathname.new(lockfile_path))
     end
 

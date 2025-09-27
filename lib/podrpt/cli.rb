@@ -10,7 +10,7 @@ module Podrpt
       when '--version', '-v'
         puts Podrpt::VERSION
       else
-        puts "Comando desconhecido: '#{command}'. Use 'run' ou 'init'."
+        puts "Unknown command: '#{command}'. Use 'run' or 'init'."
         exit 1
       end
     end
@@ -18,19 +18,19 @@ module Podrpt
     private
 
     def self.initialize_configuration
-      puts "🚀 Iniciando a configuração do Podrpt..."
+      puts "🚀 Starting podrpt configuration..."
       Podrpt::Configuration.create_risk_file
       Podrpt::Configuration.create_allowlist_file
       
-      puts "\nAgora, por favor, informe a URL do seu Incoming Webhook do Slack:"
+      puts "\nNow, please enter the URL where the Webhook will be sent to Slack:"
       print "> "
       url = $stdin.gets.chomp
-      if url.empty? || !url.start_with?("https://hooks.slack.com")
-        puts "❌ URL inválida. A configuração do Slack foi pulada."
+      if url.empty?
+        puts "❌ An error occurred and this step was skipped, talk to the gem admin"
       else
         Podrpt::Configuration.save_slack_url(url)
       end
-      puts "\nConfiguração concluída! Edite os arquivos .yaml e execute 'podrpt run'."
+      puts "\nSetup complete! Edit the .yaml files and run 'podrpt run'."
     end
 
     def self.run_reporter(args)
@@ -46,7 +46,7 @@ module Podrpt
 
       allowlist_config = load_allowlist(File.join(options.project_dir, options.allowlist_yaml))
       pods_for_report = apply_allowlist_filter(current_pods, allowlist_config)
-      puts "[podrpt] Totais lock: #{all_pods_versions.size} | Pré-allowlist: #{current_pods.size} | Relatório final: #{pods_for_report.size}"
+      puts "[podrpt] Lock totals: #{all_pods_versions.size} | Pre-allowlist: #{current_pods.size} | Final report: #{pods_for_report.size}"
       options.total_pods_count = pods_for_report.size
 
       risk_config = load_risk_config(File.join(options.project_dir, options.risk_yaml))
@@ -86,15 +86,15 @@ module Podrpt
 
       OptionParser.new do |opts|
         opts.banner = "Usage: podrpt run [options]"
-        opts.on("--project-dir DIR", "Diretório do projeto") { |v| options.project_dir = v }
-        opts.on("--slack-webhook-url URL", "URL do Webhook (sobrescreve config)") { |v| options.slack_webhook_url = v }
-        opts.on("--show-all", "Mostra todos os pods") { |v| options.only_outdated = false }
-        opts.on("--sync-risk-yaml", "Sincroniza PodsRisk.yaml") { |v| options.sync_risk_yaml = v }
-        opts.on("--dry-run", "Simula o envio para o Slack, printando o payload no terminal") { |v| options.dry_run = v }
+        opts.on("--project-dir DIR", "Project DIR") { |v| options.project_dir = v }
+        opts.on("--slack-webhook-url URL", "URL Webhook (overwriting config)") { |v| options.slack_webhook_url = v }
+        opts.on("--show-all", "Show all pods") { |v| options.only_outdated = false }
+        opts.on("--sync-risk-yaml", "Sync PodsRisk.yaml") { |v| options.sync_risk_yaml = v }
+        opts.on("--dry-run", "Simulates sending to Slack, printing the payload in the terminal") { |v| options.dry_run = v }
       end.parse!(args)
 
       unless options.slack_webhook_url || options.dry_run
-        puts "❌ ERRO: URL do Slack não configurada. Rode 'podrpt init' ou use --dry-run."
+        puts "❌ ERROR: Slack URL not configured. Run 'podrpt init' or use --dry-run."
         exit 1
       end
       options
@@ -113,7 +113,7 @@ module Podrpt
     def self.sync_risk_yaml(path, pods, config)
       pods.keys.sort_by(&:downcase).each { |name| config['pods'][name] ||= config['default'].dup }
       File.write(path, config.to_yaml)
-      puts "[podrpt] PodsRisk.yaml sincronizado com #{config['pods'].size} pods."
+      puts "[podrpt] PodsRisk.yaml synced with #{config['pods'].size} pods."
     end
     def self.is_outdated(current, latest); latest && !latest.empty? && Podrpt::VersionComparer.compare(latest, current) > 0; end
   end

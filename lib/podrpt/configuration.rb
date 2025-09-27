@@ -10,7 +10,7 @@ module Podrpt
       config = File.exist?(CONFIG_FILE) ? YAML.load_file(CONFIG_FILE) || {} : {}
       config['slack_webhook_url'] = url
       File.write(CONFIG_FILE, config.to_yaml)
-      puts "✅ URL do Slack salva em #{CONFIG_FILE}"
+      puts "✅ Slack URL saved to #{CONFIG_FILE}"
     end
 
     def self.load_slack_url
@@ -25,14 +25,14 @@ module Podrpt
         'pods' => { '' => { 'risk' => 0, 'owners' => [''] } }
       }.to_yaml
       File.write(RISK_FILE, content)
-      puts "✅ Arquivo de exemplo '#{RISK_FILE}' criado."
+      puts "✅ Risk file '#{RISK_FILE}' created."
     end
 
     def self.create_allowlist_file
       return if File.exist?(ALLOWLIST_FILE)
       content = { 'allowlist' => { '' => [''] } }.to_yaml
       File.write(ALLOWLIST_FILE, content)
-      puts "✅ Arquivo de exemplo '#{ALLOWLIST_FILE}' criado."
+      puts "✅ Allow list '#{ALLOWLIST_FILE}' created."
     end
   end
 end

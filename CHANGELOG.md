@@ -1,5 +1,5 @@
 ## [Unreleased]
 
-## [0.1.0] - 2025-09-27
+## [1.0.0] - 2025-09-27
 
-- Initial release
+- first release of podrpt with all the features so far

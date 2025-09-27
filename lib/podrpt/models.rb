@@ -7,7 +7,6 @@ module Podrpt
     :dry_run,
     keyword_init: true
   )
-
   PodAnalysis = Struct.new(
     :name, :current_version, :latest_version,
     :risk, :owners, keyword_init: true

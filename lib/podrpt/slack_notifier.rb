@@ -9,29 +9,29 @@ module Podrpt
         puts "--- Payload ---"
         puts report_text
         puts "----------------------------------"
-        puts "[podrpt] Dry run concluído. Nenhuma notificação foi enviada."
+        puts "Dry run completed. No notification was sent."
         return
       end
 
       unless webhook_url && !webhook_url.empty?
-        puts "[podrpt] ERRO: URL do Slack não fornecida. Saindo."
+        puts "ERRO: Slack URL not provided. Logging out."
         exit 1
       end
       
-      puts "[podrpt] Enviando relatório para o Slack..."
+      puts "Sending report to Slack..."
       headers = { 'Content-Type' => 'application/json' }
       payload = { text: "```\n#{report_text}\n```" }.to_json
       
       begin
         response = HTTParty.post(webhook_url, body: payload, headers: headers)
         if response.success?
-          puts "[podrpt] Relatório enviado com sucesso!"
+          puts "Report sent successfully!"
         else
-          puts "[podrpt] ERRO ao enviar para o Slack. Status: #{response.code}, Resposta: #{response.body}"
+          puts "ERROR sending to Slack. Status: #{response.code}, Response: #{response.body}"
           exit 1
         end
       rescue => e
-        puts "[podrpt] ERRO de conexão ao enviar para o Slack: #{e.message}"
+        puts "Connection ERROR when sending to Slack: #{e.message}"
         exit 1
       end
     end
