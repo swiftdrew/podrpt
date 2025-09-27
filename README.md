@@ -23,7 +23,7 @@ It leverages the native CocoaPods API for high-performance analysis, avoiding sl
 
 Add this line to your application's Gemfile:
 ```ruby
-gem 'podrpt', '~> 0.1.0'
+gem 'podrpt', '~> 1.0.0'
 ```
 
 And then execute:
