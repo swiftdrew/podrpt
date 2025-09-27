@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.expand_path("../lib", __dir__)
+require "podrpt"
+
+Podrpt::CLI.start(ARGV)
