@@ -94,8 +94,8 @@ module Podrpt
       
       reporter = Podrpt::ReportGenerator.new(final_analysis, options)
       report_text = reporter.build_report_text
-      
-      Podrpt::SlackNotifier.notify(options.slack_webhook_url, report_text)
+
+      Podrpt::SlackNotifier.notify(options.slack_webhook_url, report_text, dry_run: options.dry_run)
     end
     
     def self.parse_run_options(args)
@@ -105,7 +105,8 @@ module Podrpt
         allowlist_yaml: 'PodsAllowlist.yaml',
         only_outdated: true,
         trunk_workers: 8,
-        slack_webhook_url: ENV['SLACK_WEBHOOK_URL'] || Podrpt::Configuration.load_slack_url
+        slack_webhook_url: ENV['SLACK_WEBHOOK_URL'] || Podrpt::Configuration.load_slack_url,
+        dry_run: false
       )
       OptionParser.new do |opts|
         opts.banner = "Usage: podrpt run [options]"
@@ -113,10 +114,11 @@ module Podrpt
         opts.on("--slack-webhook-url URL", "URL do Webhook (sobrescreve config)") { |v| options.slack_webhook_url = v }
         opts.on("--show-all", "Mostra todos os pods") { |v| options.only_outdated = false }
         opts.on("--sync-risk-yaml", "Sincroniza PodsRisk.yaml") { |v| options.sync_risk_yaml = v }
+        opts.on("--dry-run", "Simula o envio para o Slack, printando o payload no terminal") { |v| options.dry_run = v }
       end.parse!(args)
 
-      unless options.slack_webhook_url
-        puts "❌ ERRO: URL do Slack não configurada. Rode 'podrpt init'."
+      unless options.slack_webhook_url || options.dry_run
+        puts "❌ ERRO: URL do Slack não configurada. Rode 'podrpt init' ou use --dry-run."
         exit 1
       end
       options
