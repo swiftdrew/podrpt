@@ -1,3 +1,4 @@
+# lib/podrpt/cli.rb
 module Podrpt
   class CLI
     def self.start(args)
@@ -10,7 +11,7 @@ module Podrpt
       when '--version', '-v'
         puts Podrpt::VERSION
       else
-        puts "Unknown command: '#{command}'. Use 'run' or 'init'."
+        puts "Comando desconhecido: '#{command}'. Use 'run' ou 'init'."
         exit 1
       end
     end
@@ -18,24 +19,48 @@ module Podrpt
     private
 
     def self.initialize_configuration
-      puts "🚀 Starting podrpt configuration..."
-      Podrpt::Configuration.create_risk_file
-      Podrpt::Configuration.create_allowlist_file
+      puts "🚀 Iniciando a configuração do Podrpt..."
       
-      puts "\nNow, please enter the URL where the Webhook will be sent to Slack:"
+      pod_names_to_configure = []
+      project_dir = Dir.pwd
+      lockfile_path = File.join(project_dir, 'Podfile.lock')
+      
+      if File.exist?(lockfile_path)
+        puts "📄 `Podfile.lock` encontrado. Analisando pods para pré-popular os arquivos..."
+        begin
+          # Analisa o lockfile para obter a lista completa de pods externos
+          analyzer = Podrpt::LockfileAnalyzer.new(project_dir)
+          all_pods_versions = analyzer.pod_versions
+          classified_pods = analyzer.classify_pods
+          
+          # Filtramos apenas para pods que não são de desenvolvimento local
+          external_pods_filter = classified_pods[:spec_repo].dup
+          external_pods_filter -= classified_pods[:dev_path]
+          
+          pods_to_configure = all_pods_versions.slice(*external_pods_filter.to_a)
+          pod_names_to_configure = pods_to_configure.keys
+          
+        rescue => e
+          puts "⚠️ Erro ao analisar o `Podfile.lock`: #{e.message}. Os arquivos serão criados com exemplos."
+        end
+      else
+        puts "⚠️ `Podfile.lock` não encontrado. Os arquivos serão criados com exemplos."
+      end
+
+      # Cria os arquivos de configuração, passando a lista de pods encontrados
+      Podrpt::Configuration.create_allowlist_file(pod_names: pod_names_to_configure)
+      Podrpt::Configuration.create_risk_file(pod_names: pod_names_to_configure)
+      
+      puts "\nAgora, por favor, informe a URL do seu Incoming Webhook do Slack:"
       print "> "
       url = $stdin.gets.chomp
-      if url.empty?
-        puts "❌ An error occurred and this step was skipped, talk to the gem admin"
-      else
-        Podrpt::Configuration.save_slack_url(url)
-      end
-      puts "\nSetup complete! Edit the .yaml files and run 'podrpt run'."
+      Podrpt::Configuration.save_slack_url(url)
+      puts "\nConfiguração concluída! Edite os arquivos .yaml conforme necessário e execute 'podrpt run'."
     end
-
+    
+    # O método `run_reporter` e seus auxiliares permanecem os mesmos da última versão funcional
     def self.run_reporter(args)
       options = parse_run_options(args)
-      
       analyzer = Podrpt::LockfileAnalyzer.new(options.project_dir)
       all_pods_versions = analyzer.pod_versions
       classified_pods = analyzer.classify_pods
@@ -46,7 +71,7 @@ module Podrpt
 
       allowlist_config = load_allowlist(File.join(options.project_dir, options.allowlist_yaml))
       pods_for_report = apply_allowlist_filter(current_pods, allowlist_config)
-      puts "[podrpt] Lock totals: #{all_pods_versions.size} | Pre-allowlist: #{current_pods.size} | Final report: #{pods_for_report.size}"
+      puts "[podrpt] Totais lock: #{all_pods_versions.size} | Pré-allowlist: #{current_pods.size} | Relatório final: #{pods_for_report.size}"
       options.total_pods_count = pods_for_report.size
 
       risk_config = load_risk_config(File.join(options.project_dir, options.risk_yaml))
@@ -70,7 +95,7 @@ module Podrpt
       reporter = Podrpt::ReportGenerator.new(final_analysis, options)
       report_text = reporter.build_report_text
       
-      Podrpt::SlackNotifier.notify(options.slack_webhook_url, report_text, dry_run: options.dry_run)
+      Podrpt::SlackNotifier.notify(options.slack_webhook_url, report_text)
     end
     
     def self.parse_run_options(args)
@@ -80,21 +105,18 @@ module Podrpt
         allowlist_yaml: 'PodsAllowlist.yaml',
         only_outdated: true,
         trunk_workers: 8,
-        slack_webhook_url: ENV['SLACK_WEBHOOK_URL'] || Podrpt::Configuration.load_slack_url,
-        dry_run: false
+        slack_webhook_url: ENV['SLACK_WEBHOOK_URL'] || Podrpt::Configuration.load_slack_url
       )
-
       OptionParser.new do |opts|
         opts.banner = "Usage: podrpt run [options]"
-        opts.on("--project-dir DIR", "Project DIR") { |v| options.project_dir = v }
-        opts.on("--slack-webhook-url URL", "URL Webhook (overwriting config)") { |v| options.slack_webhook_url = v }
-        opts.on("--show-all", "Show all pods") { |v| options.only_outdated = false }
-        opts.on("--sync-risk-yaml", "Sync PodsRisk.yaml") { |v| options.sync_risk_yaml = v }
-        opts.on("--dry-run", "Simulates sending to Slack, printing the payload in the terminal") { |v| options.dry_run = v }
+        opts.on("--project-dir DIR", "Diretório do projeto") { |v| options.project_dir = v }
+        opts.on("--slack-webhook-url URL", "URL do Webhook (sobrescreve config)") { |v| options.slack_webhook_url = v }
+        opts.on("--show-all", "Mostra todos os pods") { |v| options.only_outdated = false }
+        opts.on("--sync-risk-yaml", "Sincroniza PodsRisk.yaml") { |v| options.sync_risk_yaml = v }
       end.parse!(args)
 
-      unless options.slack_webhook_url || options.dry_run
-        puts "❌ ERROR: Slack URL not configured. Run 'podrpt init' or use --dry-run."
+      unless options.slack_webhook_url
+        puts "❌ ERRO: URL do Slack não configurada. Rode 'podrpt init'."
         exit 1
       end
       options
@@ -113,7 +135,7 @@ module Podrpt
     def self.sync_risk_yaml(path, pods, config)
       pods.keys.sort_by(&:downcase).each { |name| config['pods'][name] ||= config['default'].dup }
       File.write(path, config.to_yaml)
-      puts "[podrpt] PodsRisk.yaml synced with #{config['pods'].size} pods."
+      puts "[podrpt] PodsRisk.yaml sincronizado com #{config['pods'].size} pods."
     end
     def self.is_outdated(current, latest); latest && !latest.empty? && Podrpt::VersionComparer.compare(latest, current) > 0; end
   end
