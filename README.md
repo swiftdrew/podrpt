@@ -4,8 +4,6 @@
   
   <p>
     <a href="https://rubygems.org/gems/podrpt"><img src="https://img.shields.io/gem/v/podrpt.svg?style=flat-square" alt="Gem Version"/></a>
-    <a href="https://github.com/[YOUR_USERNAME]/podrpt/blob/main/LICENSE"><img src="https://img.shields.io/github/license/[YOUR_USERNAME]/podrpt?style=flat-square" alt="License"/></a>
-    <a href="https://github.com/[YOUR_USERNAME]/podrpt/actions"><img src="https://img.shields.io/github/actions/workflow/status/[YOUR_USERNAME]/podrpt/main.yml?style=flat-square" alt="Build Status"/></a>
   </p>
 </div>
 
@@ -14,14 +12,10 @@
 ## Table of Contents
 
 - [✨ Key Features](#-key-features)
-- [👀 Demo](#-demo)
 - [🚀 Getting Started](#-getting-started)
   - [1. Installation](#1-installation)
   - [2. Initial Setup](#2-initial-setup)
   - [3. Usage](#3-usage)
-- [⚙️ Advanced Configuration](#️-advanced-configuration)
-- [🤖 CI/CD Integration (GitHub Actions Example)](#-cicd-integration-github-actions-example)
-- [🤝 Contributing](#-contributing)
 - [📜 License](#-license)
 - [⚖️ Code of Conduct](#️-code-of-conduct)
 
@@ -35,12 +29,6 @@
 * 🎯 **Dependency Filtering**: Ignore transitive dependencies and focus only on the pods you directly manage with a `PodsAllowlist.yaml`.
 * ⚙️ **Interactive Setup**: A simple `init` command generates all the necessary configuration files to get you started.
 * 🤖 **CI/CD Focused**: Designed to run in automated environments without leaving behind unnecessary file artifacts.
-
----
-
-## 👀 Demo
-
-*Example of the outdated pods report sent to a Slack channel.*
 
 ---
 
