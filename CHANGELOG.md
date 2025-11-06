@@ -1,6 +1,6 @@
 ## [Released]
 
-## [2.0.1] - 2025-11-06
+## [4.0.0] - 2025-11-06
 
 - remove unnecessary code
 
