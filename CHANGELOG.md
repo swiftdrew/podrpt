@@ -1,5 +1,9 @@
 ## [Released]
 
+## [2.0.1] - 2025-11-06
+
+- remove unnecessary code
+
 ## [2.0.0] - 2025-11-06
 
 - new version
