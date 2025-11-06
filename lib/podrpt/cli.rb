@@ -117,10 +117,6 @@ module Podrpt
         opts.on("--dry-run", "Simula o envio para o Slack, printando o payload no terminal") { |v| options.dry_run = v }
       end.parse!(args)
 
-      unless options.slack_webhook_url || options.dry_run
-        puts "❌ ERRO: URL do Slack não configurada. Rode 'podrpt init' ou use --dry-run."
-        exit 1
-      end
       options
     end
     
