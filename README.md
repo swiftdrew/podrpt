@@ -40,7 +40,7 @@ Follow the three steps below to set up and run Podrpt in your project.
 
 Add the gem to your project's `Gemfile`:
 ```ruby
-gem 'podrpt', '~> 1.0.0'
+gem 'podrpt', '~> 2.0.0'
 ```
 
 And then execute:
